@@ -82,17 +82,39 @@ def convertIdToPath(x):
     return p.exe()
 
 def repeat():
-    onOff.clear()
     for number in listOfRunningProcessPID:
         try:
             path = convertIdToPath(number)
-            onOff[path] = 0
+            if path in onOff.keys(): pass
+            else : onOff[path] = 0
         except (AttributeError,PermissionError,psutil.AccessDenied,psutil.NoSuchProcess,ProcessLookupError): pass
     with open(logDirectory,"w") as f: f.write(json.dumps(onOff, indent=4, sort_keys=True))
 
 
+def checkFirstTime():
+    with open(logDirectory, "r+") as f: d = json.load(f)
+    if len(d)!=0 : main()
+    else :
+        print(f"{LCYAN}This is the first time you used this software.")
+        print(f"{LGREEN}Press 0 for not using it for second time.")
+        print(f"{LMAGENTA}Press 1 for reusing it.")
+
+        getInstalledProgramList()
+        for name,number in zip(listOfRunningProcessNames,listOfRunningProcessPID):
+            user = int(input("Enter 0 for REPEAT 1 for NO REPEAT = "))
+            if user == 1:
+                try:
+                    path = convertIdToPath(number)
+                    onOff[path] = 1
+                except (AttributeError,PermissionError,psutil.AccessDenied,psutil.NoSuchProcess,ProcessLookupError): pass
+        with open(logDirectory,"w") as f: f.write(json.dumps(onOff, indent=4, sort_keys=True))
+
+
+
+
 
 def initialPrompt():
+    checkFirstTime()
     print(f"{LGREEN}Restore all previous sessions ? {LCYAN}Y / {LMAGENTA}N = ", end="")
     x = input()
     if x == "N" or x == "n":
@@ -108,9 +130,9 @@ def initialPrompt():
 def main():
     getInstalledProgramList()
     repeat() # add programs at definite interval
-    for k,v in onOff.items(): print(k,v)
-    #time.sleep(30)
-    #main()
+    #for k,v in onOff.items(): print(k,v)
+    time.sleep(30)
+    main()
     
     
 initialPrompt()
